@@ -4,6 +4,9 @@ import java.util.List;
 
 import simplf.Stmt.For;
 
+import java.util.stream.Collectors;
+
+
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
     public Environment globals = new Environment();
     private Environment environment = globals;
@@ -204,7 +207,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
     @Override
     public Object visitCallExpr(Expr.Call expr) {
         Object callee = evaluate(expr.callee);
-        List<Object> args = expr.args.stream().map(this::evaluate).toList();
+        List<Object> args = expr.args.stream().map(this::evaluate).collect(Collectors.toList());
     
         if (!(callee instanceof SimplfCallable)) {
             throw new RuntimeError(expr.paren, "Can only call functions.");

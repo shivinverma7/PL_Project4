@@ -80,26 +80,35 @@ public class Desugar implements Expr.Visitor<Expr>, Stmt.Visitor<Stmt> {
     }
 
     @Override
-    public Stmt visitForStmt(For stmt) {
-        Expr init = stmt.init;
-        Expr cond = stmt.cond;
-        Expr incr = stmt.incr;
-        Stmt body = stmt.body;
+public Stmt visitForStmt(For stmt) {
+    Expr init = stmt.init;
+    Expr cond = stmt.cond;
+    Expr incr = stmt.incr;
+    Stmt body = stmt.body;
+
+    // Desugar the expressions
+    Stmt newInit = new Expression(init != null ? init.accept(this) : new Literal(null));
+    Expr newCond = cond != null ? cond.accept(this) : new Literal(true);
+    Expr newIncr = incr != null ? incr.accept(this) : new Literal(null);
+    Stmt newBody = body.accept(this);
+    Stmt incrStmt = new Expression(newIncr);
+
+    // Create a new list for loop body
+    List<Stmt> loopBody = new ArrayList<>();
+    loopBody.add(newBody);
+    loopBody.add(incrStmt);
+
+    // Create the while loop
+    While whileLoop = new While(newCond, new Block(loopBody));
+
+    // Return the block containing the initialization and while loop
+    ArrayList<Stmt> statements = new ArrayList<>();
+    statements.add(newInit);
+    statements.add(whileLoop);
     
-        Stmt newInit = new Expression(init != null ? init.accept(this) : new Literal(null));
-        Expr newCond = cond != null ? cond.accept(this) : new Literal(true);
-        Expr newIncr = incr != null ? incr.accept(this) : new Literal(null);
-        Stmt newBody = body.accept(this);
-        Stmt incrStmt = new Expression(newIncr);
-    
-        List<Stmt> loopBody = new ArrayList<>();
-        loopBody.add(newBody);
-        loopBody.add(incrStmt);
-    
-        While whileLoop = new While(newCond, new Block(loopBody));
-    
-        return new Block(List.of(newInit, whileLoop));
-    }
+    return new Block(statements);
+}
+
     
 
     @Override
