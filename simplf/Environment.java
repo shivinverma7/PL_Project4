@@ -1,16 +1,22 @@
 package simplf; 
 
 class Environment {
+    public AssocList assocList;
+    public final Environment enclosing;
     Environment() {
-        //throw new UnsupportedOperationException("TODO: implement environments.");
+        this.assocList = null;
+        this.enclosing = null;
     }
 
     Environment(Environment enclosing) {
-        throw new UnsupportedOperationException("TODO: implement environments.");
+        this.assocList = null;
+        this.enclosing = enclosing;
     }
 
+
     Environment(AssocList assocList, Environment enclosing) {
-        throw new UnsupportedOperationException("TODO: implement environments.");
+        this.assocList = assocList;
+        this.enclosing = enclosing;
     }
 
     // Return a new version of the environment that defines the variable "name"
@@ -28,15 +34,38 @@ class Environment {
     // This should be constructed by building a new class of type AssocList whose "next"
     // reference is the previous AssocList.
     Environment define(Token varToken, String name, Object value) {
-        throw new UnsupportedOperationException("TODO: implement environments.");
+        AssocList newList = new AssocList(name, value, assocList);
+        return new Environment(newList, enclosing);
     }
 
     void assign(Token name, Object value) {
-        throw new UnsupportedOperationException("TODO: implement environments.");
+        for (AssocList node = assocList; node != null; node = node.next) {
+            if (node.name.equals(name.lexeme)) {
+                node.value = value;
+                return;
+            }
+        }
+        if (enclosing != null) {
+            enclosing.assign(name, value);
+            return;
+        }
+        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'");
     }
 
+    void define(String name, Object value) {
+        assocList = new AssocList(name, value, assocList);
+    }  
+
     Object get(Token name) {
-        throw new UnsupportedOperationException("TODO: implement environments.");
+        for (AssocList node = assocList; node != null; node = node.next) {
+            if (node.name.equals(name.lexeme)) {
+                return node.value;
+            }
+        }
+        if (enclosing != null) {
+            return enclosing.get(name);
+        }
+        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'");
     }
-}
+    }
 
